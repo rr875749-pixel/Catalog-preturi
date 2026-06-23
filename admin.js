@@ -229,20 +229,26 @@ async function quickUpdatePrice(id, input) {
   if (isNaN(val) || val < 0) return;
   const field = input.dataset.field;
 
+  const product = allAdminProducts.find(p => p._id === id);
+  const vatRate = product?.vatRate || 21;
   const updateData = { [field]: val, updatedAt: new Date().toISOString() };
+  const row = document.getElementById('item-' + id);
 
-  // Dacă se modifică prețul fără TVA → recalculează automat prețul cu TVA
   if (field === 'priceNoVAT') {
-    const product = allAdminProducts.find(p => p._id === id);
-    const vatRate = product?.vatRate || 21;
+    // fără TVA modificat → calculează cu TVA
     const newWithVAT = parseFloat((val * (1 + vatRate / 100)).toFixed(2));
     updateData.priceWithVAT = newWithVAT;
-
-    // Actualizează și câmpul vizual cu TVA
-    const row = document.getElementById('item-' + id);
     if (row) {
-      const withVATInput = row.querySelector('[data-field="priceWithVAT"]');
-      if (withVATInput) withVATInput.value = newWithVAT.toFixed(2);
+      const inp = row.querySelector('[data-field="priceWithVAT"]');
+      if (inp) inp.value = newWithVAT.toFixed(2);
+    }
+  } else if (field === 'priceWithVAT') {
+    // cu TVA modificat → calculează fără TVA
+    const newNoVAT = parseFloat((val / (1 + vatRate / 100)).toFixed(2));
+    updateData.priceNoVAT = newNoVAT;
+    if (row) {
+      const inp = row.querySelector('[data-field="priceNoVAT"]');
+      if (inp) inp.value = newNoVAT.toFixed(2);
     }
   }
 
