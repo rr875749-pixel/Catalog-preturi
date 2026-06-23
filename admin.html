@@ -86,16 +86,18 @@
           <button class="btn-cancel-edit" id="btnCancel" onclick="cancelEdit()">Anulează editarea</button>
         </div>
 
-        <!-- Import date inițiale -->
+        <!-- Import / Sincronizare -->
         <div class="form-card" style="margin-top:20px;">
-          <h3>Import date inițiale</h3>
+          <h3>Sincronizare catalog</h3>
           <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:14px;">
-            Importă toate produsele din fișierul <code>products.js</code> în Firebase.
-            Folosește o singură dată la configurare inițială.
+            Actualizează prețurile și TVA-ul din Firebase cu datele din <code>products.js</code> (când se fac modificări în cod).
           </p>
           <div id="importStatus" style="font-size:0.85rem;margin-bottom:10px;"></div>
-          <button class="btn-save" style="background:var(--orange);" onclick="importInitialData()">
-            Importă produsele din products.js
+          <button class="btn-save" style="background:#16A34A;" onclick="syncProducts()">
+            Sincronizează cu products.js
+          </button>
+          <button class="btn-save" style="background:var(--orange);margin-top:8px;" onclick="importInitialData()">
+            Import inițial (prima dată)
           </button>
         </div>
       </div>

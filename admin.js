@@ -192,20 +192,44 @@ function renderAdminList(list) {
       lastCat = p.category;
     }
     return `${divider}
-      <div class="admin-product-item">
+      <div class="admin-product-item" id="item-${p._id}">
         <div class="admin-product-info">
           <span class="code-chip">${escHtml(p.code || '')}</span>
           <span class="admin-product-name">${escHtml(p.name || '')}</span>
         </div>
-        <div class="admin-product-prices">
-          <span style="color:var(--gray-500);font-size:0.8rem;">${p.priceNoVAT?.toFixed(2)} lei</span>
-          <span style="font-weight:700;color:var(--blue);">${p.priceWithVAT?.toFixed(2)} lei</span>
+        <div class="admin-inline-prices">
+          <div class="inline-price-group">
+            <label>Fără TVA</label>
+            <input type="number" class="inline-price-input" step="0.01" min="0"
+                   value="${p.priceNoVAT?.toFixed(2) || ''}"
+                   onchange="quickUpdatePrice('${p._id}', this)" data-field="priceNoVAT" />
+          </div>
+          <div class="inline-price-group">
+            <label>Cu TVA</label>
+            <input type="number" class="inline-price-input price-blue" step="0.01" min="0"
+                   value="${p.priceWithVAT?.toFixed(2) || ''}"
+                   onchange="quickUpdatePrice('${p._id}', this)" data-field="priceWithVAT" />
+          </div>
           <span class="vat-rate">${p.vatRate || 21}%</span>
         </div>
         <button class="btn-edit"   onclick="editProduct('${p._id}')">Editează</button>
         <button class="btn-delete" onclick="deleteProduct('${p._id}', '${escHtml(p.name || '')}')">Șterge</button>
       </div>`;
   }).join('');
+}
+
+/* ── QUICK PRICE UPDATE ── */
+async function quickUpdatePrice(id, input) {
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val < 0) return;
+  const field = input.dataset.field;
+  try {
+    await db.collection('catalog_products').doc(id).update({ [field]: val, updatedAt: new Date().toISOString() });
+    showToast('Preț actualizat! ✓');
+  } catch (e) {
+    showToast('Eroare la salvare.');
+    console.error(e);
+  }
 }
 
 function filterAdminList() {
@@ -217,6 +241,51 @@ function filterAdminList() {
         (p.category || '').toLowerCase().includes(q))
     : allAdminProducts;
   renderAdminList(filtered);
+}
+
+/* ── SYNC — actualizează prețurile din Firebase cu datele din products.js ── */
+async function syncProducts() {
+  if (!confirm(`Sincronizează ${PRODUCTS.length} produse din products.js în Firebase?\n\nActualizează prețurile, TVA-ul și categoriile pentru produsele existente. Produsele adăugate manual în admin NU sunt afectate.`)) return;
+
+  const statusEl = document.getElementById('importStatus');
+  statusEl.textContent = 'Se sincronizează...';
+
+  const snap = await db.collection('catalog_products').get();
+  const docsMap = {};
+  snap.docs.forEach(d => { docsMap[d.data().code] = d.id; });
+
+  let updated = 0, added = 0;
+  const batch = db.batch();
+
+  PRODUCTS.forEach(p => {
+    if (docsMap[p.code]) {
+      // actualizează doc existent
+      const ref = db.collection('catalog_products').doc(docsMap[p.code]);
+      batch.update(ref, {
+        name:         p.name,
+        category:     p.category,
+        bucCutie:     p.bucCutie,
+        priceNoVAT:   p.priceNoVAT,
+        priceWithVAT: p.priceWithVAT,
+        vatRate:      p.vatRate,
+      });
+      updated++;
+    } else {
+      // adaugă produs nou
+      const ref = db.collection('catalog_products').doc();
+      batch.set(ref, { ...p, createdAt: new Date().toISOString() });
+      added++;
+    }
+  });
+
+  try {
+    await batch.commit();
+    statusEl.textContent = `✓ ${updated} produse actualizate, ${added} adăugate nou.`;
+    showToast(`Sincronizare completă! ${updated} actualizate.`);
+  } catch (e) {
+    statusEl.textContent = `Eroare: ${e.message}`;
+    console.error(e);
+  }
 }
 
 /* ── IMPORT INITIAL DATA ── */

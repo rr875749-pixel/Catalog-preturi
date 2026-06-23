@@ -30,8 +30,8 @@ const PRODUCTS = [
   { code: "ART_06096", name: "Airwaves Black Mint 600*14g",                       category: "Airwaves",             bucCutie: 30,  priceNoVAT: 3.70,   priceWithVAT: 4.11,   vatRate: 11, discount: 0 },
   { code: "ART_26666", name: "AIRWAVES Lime Ginger 30p",                          category: "Airwaves",             bucCutie: 30,  priceNoVAT: 3.70,   priceWithVAT: 4.11,   vatRate: 11, discount: 0 },
 
-  // ── WINTERFRESH PELLETS — TVA 21% ─────────────────────────────────────────
-  { code: "ART_02791", name: "Winterfresh Original Pellets",                      category: "Winterfresh",          bucCutie: 30,  priceNoVAT: 3.34,   priceWithVAT: 4.04,   vatRate: 21, discount: 0 },
+  // ── WINTERFRESH PELLETS — TVA 11% ─────────────────────────────────────────
+  { code: "ART_02791", name: "Winterfresh Original Pellets",                      category: "Winterfresh",          bucCutie: 30,  priceNoVAT: 3.34,   priceWithVAT: 3.71,   vatRate: 11, discount: 0 },
 
   // ── ORBIT SINGLE PORTION — TVA 11% ───────────────────────────────────────
   { code: "ART_05564", name: "Orbit Spearmint miniflow",                          category: "Orbit Single Portion", bucCutie: 100, priceNoVAT: 0.62,   priceWithVAT: 0.69,   vatRate: 11, discount: 0 },
@@ -61,9 +61,9 @@ const PRODUCTS = [
   { code: "NG401",     name: "Hubba Bubba Triple Strawberry/Blueberry/Watermelon", category: "Hubba Bubba",         bucCutie: 12,  priceNoVAT: 11.97,  priceWithVAT: 14.48,  vatRate: 21, discount: 0 },
   { code: "ART_29554", name: "HUBBA BUBBA Cola Tape 180*56g",                     category: "Hubba Bubba",          bucCutie: 12,  priceNoVAT: 11.97,  priceWithVAT: 14.48,  vatRate: 21, discount: 0 },
 
-  // ── WINTERFRESH MINTS — TVA 21% ───────────────────────────────────────────
-  { code: "ART_01583", name: "Winterfresh Strong Mint - Vel Mints",               category: "Winterfresh",          bucCutie: 24,  priceNoVAT: 4.05,   priceWithVAT: 4.90,   vatRate: 21, discount: 0 },
-  { code: "ART_00047", name: "Winterfresh Fresh Mint - Vel Mints",                category: "Winterfresh",          bucCutie: 24,  priceNoVAT: 4.05,   priceWithVAT: 4.90,   vatRate: 21, discount: 0 },
+  // ── WINTERFRESH MINTS — TVA 11% ───────────────────────────────────────────
+  { code: "ART_01583", name: "Winterfresh Strong Mint - Vel Mints",               category: "Winterfresh",          bucCutie: 24,  priceNoVAT: 4.05,   priceWithVAT: 4.50,   vatRate: 11, discount: 0 },
+  { code: "ART_00047", name: "Winterfresh Fresh Mint - Vel Mints",                category: "Winterfresh",          bucCutie: 24,  priceNoVAT: 4.05,   priceWithVAT: 4.50,   vatRate: 11, discount: 0 },
 
   // ── SKITTLES — TVA 21% ────────────────────────────────────────────────────
   { code: "ART_01562", name: "Skittles Fruits",                                   category: "Skittles",             bucCutie: 14,  priceNoVAT: 3.20,   priceWithVAT: 3.87,   vatRate: 21, discount: 0 },
