@@ -317,6 +317,44 @@ async function syncProducts() {
   }
 }
 
+/* ── STERGE DUPLICATE ── */
+async function removeDuplicates() {
+  const statusEl = document.getElementById('importStatus');
+  statusEl.textContent = 'Se caută duplicate...';
+
+  const snap = await db.collection('catalog_products').get();
+  const grouped = {};
+
+  snap.docs.forEach(d => {
+    const code = d.data().code || d.id;
+    if (!grouped[code]) grouped[code] = [];
+    grouped[code].push(d.id);
+  });
+
+  const toDelete = [];
+  Object.values(grouped).forEach(ids => {
+    // păstrează primul, șterge restul
+    ids.slice(1).forEach(id => toDelete.push(id));
+  });
+
+  if (toDelete.length === 0) {
+    statusEl.textContent = '✓ Niciun duplicat găsit.';
+    return;
+  }
+
+  const batch = db.batch();
+  toDelete.forEach(id => batch.delete(db.collection('catalog_products').doc(id)));
+
+  try {
+    await batch.commit();
+    statusEl.textContent = `✓ ${toDelete.length} duplicate șterse.`;
+    showToast(`${toDelete.length} duplicate șterse! ✓`);
+  } catch (e) {
+    statusEl.textContent = `Eroare: ${e.message}`;
+    console.error(e);
+  }
+}
+
 /* ── IMPORT INITIAL DATA ── */
 async function importInitialData() {
   if (!confirm(`Importă ${PRODUCTS.length} produse din products.js în Firebase?\n\nProdusele existente cu același cod NU vor fi duplicate.`)) return;
