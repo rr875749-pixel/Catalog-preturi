@@ -393,6 +393,31 @@ td {
   letter-spacing: 0.3px;
 }
 
+.disc-cascade-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.disc-cascade-plus {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-300);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.disc2-wrap {
+  border-color: var(--blue-mid);
+  background: var(--blue-light);
+}
+
+.disc2-wrap:focus-within {
+  border-color: var(--blue);
+  background: var(--white);
+}
+
 /* ── PREȚURI FINALE ── */
 .final-price {
   font-family: 'JetBrains Mono', monospace;

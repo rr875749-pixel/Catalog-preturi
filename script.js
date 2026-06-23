@@ -1,5 +1,6 @@
-let globalDiscount   = 0;
-let productDiscounts = {};
+let globalDiscount    = 0;
+let productDiscounts  = {};
+let productDiscounts2 = {};
 let currentCategory  = 'all';
 let loadedProducts   = []; // produse încărcate din Firebase sau products.js
 
@@ -50,8 +51,15 @@ function getDiscount(code) {
     : globalDiscount;
 }
 
-function calcFinal(priceWithVAT, discount) {
-  return priceWithVAT * (1 - discount / 100);
+function calcFinal(priceWithVAT, disc1, disc2) {
+  let result = priceWithVAT * (1 - disc1 / 100);
+  if (disc2 > 0) result = result * (1 - disc2 / 100);
+  return result;
+}
+
+function getDiscount2(code) {
+  const per = productDiscounts2[code];
+  return (per !== undefined && per !== null && per !== '') ? parseFloat(per) || 0 : 0;
 }
 
 function escHtml(str) {
@@ -118,12 +126,17 @@ function renderTable() {
       lastCat = p.category;
     }
 
-    const disc     = getDiscount(p.code);
+    const disc1    = getDiscount(p.code);
+    const disc2    = getDiscount2(p.code);
     const vat      = (p.priceWithVAT || 0) - (p.priceNoVAT || 0);
-    const final    = calcFinal(p.priceWithVAT || 0, disc);
+    const final    = calcFinal(p.priceWithVAT || 0, disc1, disc2);
     const savings  = (p.priceWithVAT || 0) - final;
-    const hasDisc  = disc > 0;
-    const perVal   = productDiscounts[p.code] !== undefined ? productDiscounts[p.code] : '';
+    const hasDisc  = disc1 > 0 || disc2 > 0;
+    const perVal   = productDiscounts[p.code]  !== undefined ? productDiscounts[p.code]  : '';
+    const perVal2  = productDiscounts2[p.code] !== undefined ? productDiscounts2[p.code] : '';
+    const effDisc  = disc2 > 0
+      ? Math.round((1 - (1 - disc1 / 100) * (1 - disc2 / 100)) * 1000) / 10
+      : disc1;
 
     rows.push(`<tr class="${hasDisc ? 'row-discounted' : ''}">
       <td class="col-code"><span class="code-chip">${escHtml(p.code || '')}</span></td>
@@ -145,7 +158,18 @@ function renderTable() {
                  onchange="onProductDiscount(this)" />
           <span class="pct-sign-sm">%</span>
         </div>
-        ${disc > 0 ? `<span class="disc-badge">-${disc}%</span>` : ''}
+        <div class="disc-cascade-row">
+          <span class="disc-cascade-plus">+</span>
+          <div class="disc-input-wrap disc2-wrap">
+            <input type="number" class="disc-input" min="0" max="36" step="1"
+                   value="${escHtml(String(perVal2))}"
+                   placeholder="0"
+                   data-code="${escHtml(p.code || '')}"
+                   onchange="onProductDiscount2(this)" />
+            <span class="pct-sign-sm">%</span>
+          </div>
+        </div>
+        ${hasDisc ? `<span class="disc-badge">${disc2 > 0 ? `↘ -${effDisc}%` : `-${disc1}%`}</span>` : ''}
       </td>
       <td class="col-final">
         <strong class="final-price ${hasDisc ? 'price-red' : ''}">${fmt(final)}</strong>
@@ -167,9 +191,10 @@ function updateSummary(filtered) {
 
   let origTotal = 0, finalTotal = 0;
   filtered.forEach(p => {
-    const disc = getDiscount(p.code);
+    const disc1 = getDiscount(p.code);
+    const disc2 = getDiscount2(p.code);
     origTotal  += p.priceWithVAT || 0;
-    finalTotal += calcFinal(p.priceWithVAT || 0, disc);
+    finalTotal += calcFinal(p.priceWithVAT || 0, disc1, disc2);
   });
   const totalSavings = origTotal - finalTotal;
 
@@ -213,6 +238,19 @@ function onProductDiscount(input) {
   renderTable();
 }
 
+function onProductDiscount2(input) {
+  const code = input.dataset.code;
+  const raw  = input.value.trim();
+  if (raw === '') {
+    delete productDiscounts2[code];
+  } else {
+    let val = parseFloat(raw) || 0;
+    val = Math.min(36, Math.max(0, val));
+    productDiscounts2[code] = val;
+  }
+  renderTable();
+}
+
 function filterProducts() { renderTable(); }
 
 function onSearch() {
@@ -228,13 +266,15 @@ function clearSearch() {
 }
 
 function resetDiscounts() {
-  productDiscounts = {};
+  productDiscounts  = {};
+  productDiscounts2 = {};
   renderTable();
 }
 
 function resetAll() {
-  globalDiscount   = 0;
-  productDiscounts = {};
+  globalDiscount    = 0;
+  productDiscounts  = {};
+  productDiscounts2 = {};
   currentCategory  = 'all';
   document.getElementById('globalSlider').value = 0;
   document.getElementById('globalInput').value  = 0;
