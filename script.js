@@ -139,8 +139,8 @@ function renderTable() {
       ? Math.round((1 - (1 - disc1 / 100) * (1 - disc2 / 100)) * 1000) / 10
       : disc1;
     const leiVal   = productLeiValues[p.code] !== undefined ? productLeiValues[p.code] : '';
-    const leiPct   = leiVal !== '' && (p.priceWithVAT || 0) > 0
-      ? Math.round((parseFloat(leiVal) / (p.priceWithVAT || 0)) * 1000) / 10
+    const leiPct   = leiVal !== '' && (p.priceWithVAT || 0) > 0 && parseFloat(leiVal) < (p.priceWithVAT || 0)
+      ? Math.round(((p.priceWithVAT || 0) - parseFloat(leiVal)) / (p.priceWithVAT || 0) * 1000) / 10
       : null;
 
     rows.push(`<tr class="${hasDisc ? 'row-discounted' : ''}">
@@ -176,7 +176,7 @@ function renderTable() {
         </div>
         ${hasDisc ? `<span class="disc-badge">${disc2 > 0 ? `↘ -${effDisc}%` : `-${disc1}%`}</span>` : ''}
         <div class="disc-lei-row">
-          <span class="disc-lei-sep">sau</span>
+          <span class="disc-lei-sep">vând la</span>
           <div class="disc-input-wrap disc-lei-wrap">
             <input type="number" class="disc-input" min="0" step="0.01"
                    value="${escHtml(String(leiVal))}"
@@ -186,7 +186,7 @@ function renderTable() {
                    onchange="onProductLei(this)" />
             <span class="pct-sign-sm">lei</span>
           </div>
-          ${leiPct !== null ? `<span class="disc-lei-pct">= ${leiPct}%</span>` : ''}
+          ${leiPct !== null ? `<span class="disc-lei-pct">= -${leiPct}%</span>` : ''}
         </div>
       </td>
       <td class="col-final">
@@ -258,17 +258,21 @@ function onProductDiscount(input) {
 }
 
 function onProductLei(input) {
-  const code  = input.dataset.code;
-  const price = parseFloat(input.dataset.price) || 0;
-  const raw   = input.value.trim();
+  const code      = input.dataset.code;
+  const price     = parseFloat(input.dataset.price) || 0;
+  const raw       = input.value.trim();
   if (raw === '' || price === 0) {
     delete productLeiValues[code];
     delete productDiscounts[code];
   } else {
-    const lei = parseFloat(raw) || 0;
-    productLeiValues[code] = lei;
-    const pct = Math.min(100, Math.round((lei / price) * 1000) / 10);
-    productDiscounts[code] = pct;
+    const sellPrice = parseFloat(raw) || 0;
+    productLeiValues[code] = sellPrice;
+    if (sellPrice >= price) {
+      delete productDiscounts[code];
+    } else {
+      const pct = Math.round(((price - sellPrice) / price) * 1000) / 10;
+      productDiscounts[code] = pct;
+    }
   }
   renderTable();
 }
